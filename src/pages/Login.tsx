@@ -92,7 +92,7 @@ const Login = () => {
         className="sm:mx-auto sm:w-full sm:max-w-md"
       >
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Welcome to DonateHope
+          Welcome to Bridge of Hope
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Join our community of giving and make a difference

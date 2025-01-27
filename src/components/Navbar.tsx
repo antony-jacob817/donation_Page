@@ -14,7 +14,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <Heart className="h-8 w-8 text-rose-500" />
-              <span className="text-xl font-bold text-gray-800">DonateHope</span>
+              <span className="text-xl font-bold text-gray-800">Bridge of Hope</span>
             </Link>
           </div>
           
