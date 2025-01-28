@@ -1,7 +1,8 @@
-import React from 'react';
+
 import Hero from '../components/Hero';
 import FeaturedCauses from '../components/FeaturedCauses';
 import Testimonials from '../components/Testimonials';
+import ChatBot from '../components/ChatBot';
 
 const Home = () => {
   return (
@@ -9,6 +10,7 @@ const Home = () => {
       <Hero />
       <FeaturedCauses />
       <Testimonials />
+      <ChatBot />
     </div>
   );
 };
