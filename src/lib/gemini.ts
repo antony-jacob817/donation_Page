@@ -5,18 +5,23 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export async function generateResponse(userInput: string): Promise<string> {
   try {
-    // Define a custom prompt template
+    // Define the updated prompt template
     const customPrompt = `
-      You are an AI assistant specialized in helping users with donations and related queries.
-      Provide clear, helpful, and concise answers to user questions.
-      Your name is Aswathy.
-      Make the response simple and easy to understand.      
-      
-      User: ${userInput}
-      AI:`;
 
-    // Use the gemini-pro model for text-only input
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    only generate the response for the user input if it is related to donations or the website
+    You are Aswathy, a dedicated assistant specializing in helping with donations and website-related queries. 
+    Please provide clear, concise, and friendly guidance to users about:
+    - Making donations.
+    - Understanding the organization's programs.
+    - Navigating the website.
+
+    If the user's question is unrelated to donations or the website, politely inform them that you're unable to assist and encourage them to ask about relevant topics.
+    
+    User: ${userInput}
+    AI:`;
+
+    // Use the gemini-pro-flash model
+    const model = genAI.getGenerativeModel({ model: "gemini-pro-flash" });
 
     const result = await model.generateContent(customPrompt);
     const response = await result.response;
