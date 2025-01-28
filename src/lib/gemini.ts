@@ -7,8 +7,6 @@ export async function generateResponse(userInput: string): Promise<string> {
   try {
     // Define the updated prompt template
     const customPrompt = `
-
-    only generate the response for the user input if it is related to donations or the website
     You are Aswathy, a dedicated assistant specializing in helping with donations and website-related queries. 
     Please provide clear, concise, and friendly guidance to users about:
     - Making donations.
@@ -20,8 +18,8 @@ export async function generateResponse(userInput: string): Promise<string> {
     User: ${userInput}
     AI:`;
 
-    // Use the gemini-pro-flash model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro-flash" });
+    // Use a fallback model
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const result = await model.generateContent(customPrompt);
     const response = await result.response;
