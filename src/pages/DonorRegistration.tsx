@@ -24,35 +24,41 @@ const DonorRegistration = () => {
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+
+    //navigate to the next oage
+
+    navigate('/dashboard/donor');
+    
+    // e.preventDefault();
+    // setIsLoading(true);
+
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('No authenticated user found');
+    //   if (!user) throw new Error('No authenticated user found');
 
-      const { error } = await supabase
-        .from('donor_profiles')
-        .insert([
-          {
-            user_id: user.id,
-            full_name: formData.fullName,
-            phone_number: formData.phoneNumber,
-            address: formData.address,
-            donation_preferences: formData.donationPreferences,
-          },
-        ]);
+    //   const { error } = await supabase
+    //     .from('donor_profiles')
+    //     .insert([
+    //       {
+    //         user_id: user.id,
+    //         full_name: formData.fullName,
+    //         phone_number: formData.phoneNumber,
+    //         address: formData.address,
+    //         donation_preferences: formData.donationPreferences,
+    //       },
+    //     ]);
 
-      if (error) throw error;
+    //   if (error) throw error;
 
-      toast.success('Profile created successfully!');
-      navigate('/dashboard/donor');
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    //   toast.success('Profile created successfully!');
+    //   navigate('/dashboard/donor');
+    // } catch (error: any) {
+    //   toast.error(error.message);
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   const handlePreferenceToggle = (preference: string) => {

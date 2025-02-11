@@ -33,45 +33,63 @@
 */
 
 -- Users table
-CREATE TABLE users (
-  id uuid PRIMARY KEY DEFAULT auth.uid(),
-  email text UNIQUE NOT NULL,
-  user_type text NOT NULL CHECK (user_type IN ('donor', 'organization')),
-  created_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can read own data"
-  ON users
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = id);
-
--- Donor profiles
-CREATE TABLE donor_profiles (
+CREATE TABLE IF NOT EXISTS donor_profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES auth.users NOT NULL,
   full_name text NOT NULL,
-  phone_number text,
-  address text,
-  donation_preferences text[],
-  created_at timestamptz DEFAULT now()
+  phone_number text NOT NULL,
+  address text NOT NULL,
+  donation_preferences text[] DEFAULT '{}',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id)
 );
 
 ALTER TABLE donor_profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Donors can read own profile"
+-- Policies for Security
+
+CREATE POLICY "Users can insert their own profile"
+  ON donor_profiles
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own profile"
   ON donor_profiles
   FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Donors can update own profile"
+CREATE POLICY "Users can update their own profile"
   ON donor_profiles
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Function to auto-update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger to auto-update the updated_at column on updates
+CREATE TRIGGER update_donor_profiles_updated_at
+  BEFORE UPDATE
+  ON donor_profiles
+  FOR EACH ROW
+  EXECUTE PROCEDURE update_updated_at_column();
+
+-- Create trigger to automatically update the updated_at column
+CREATE TRIGGER update_donor_profiles_updated_at
+  BEFORE UPDATE
+  ON donor_profiles
+  FOR EACH ROW
+  EXECUTE PROCEDURE update_updated_at_column();
 
 -- Organization profiles
 CREATE TABLE organization_profiles (

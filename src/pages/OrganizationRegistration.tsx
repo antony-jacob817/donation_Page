@@ -19,32 +19,34 @@ const OrganizationRegistration = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+    navigate('/dashboard/organization');
+
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('No authenticated user found');
+    //   if (!user) throw new Error('No authenticated user found');
 
-      const { error } = await supabase
-        .from('organization_profiles')
-        .insert([
-          {
-            user_id: user.id,
-            organization_name: formData.organizationName,
-            registration_number: formData.registrationNumber,
-            address: formData.address,
-            head_name: formData.headName,
-          },
-        ]);
+    //   const { error } = await supabase
+    //     .from('organization_profiles')
+    //     .insert([
+    //       {
+    //         user_id: user.id,
+    //         organization_name: formData.organizationName,
+    //         registration_number: formData.registrationNumber,
+    //         address: formData.address,
+    //         head_name: formData.headName,
+    //       },
+    //     ]);
 
-      if (error) throw error;
+    //   if (error) throw error;
 
-      toast.success('Organization profile created! Awaiting verification.');
-      navigate('/dashboard/organization');
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    //   toast.success('Organization profile created! Awaiting verification.');
+    //   navigate('/dashboard/organization');
+    // } catch (error: any) {
+    //   toast.error(error.message);
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   return (

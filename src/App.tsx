@@ -6,6 +6,12 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import DonorRegistration from './pages/DonorRegistration';
 import OrganizationRegistration from './pages/OrganizationRegistration';
+import DonorLogin from './pages/donorlogin';
+import DonorHome from './pages/DonorHome';
+import DonationItems from './pages/Donoritems';
+import OrganisationLogin from './pages/organisationlogin';
+import OrgHome from './pages/Orghome';
+import OrgPickups from './pages/OrgPickups';
 
 function App() {
   return (
@@ -18,6 +24,18 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register/donor" element={<DonorRegistration />} />
             <Route path="/register/organization" element={<OrganizationRegistration />} />
+            <Route path="/donorlogin" element={<DonorLogin />} />
+            <Route path="/DonorHome" element={<DonorHome />} />
+            <Route path="/donateitems" element={<DonationItems />} />
+            <Route path="/organisationlogin" element={<OrganisationLogin />} />
+            <Route path="/OrgHome" element={<OrgHome />} />
+            <Route path="/orgpickups" element={<OrgPickups />} />
+
+
+
+
+            
+
           </Routes>
         </div>
         <Toaster position="top-right" />
