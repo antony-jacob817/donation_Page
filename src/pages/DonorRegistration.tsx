@@ -28,8 +28,8 @@ const DonorRegistration = () => {
 
     //navigate to the next oage
 
-    navigate('/dashboard/donor');
-    
+    navigate('/DonorHome');
+
     // e.preventDefault();
     // setIsLoading(true);
 
