@@ -1,166 +1,365 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Box, Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
-interface DonationItem {
-  id: number;
-  name: string;
-  category: string;
-  description: string;
-  image: string;
-  impact: string;
-}
-
-const donationItems: DonationItem[] = [
-  {
-    id: 1,
-    name: "Winter Coats",
-    category: "Clothing",
-    description: "Warm winter coats for adults and children",
-    image: "https://images.unsplash.com/photo-1515434126000-961d90ff09db?auto=format&fit=crop&q=80&w=500",
-    impact: "Helps keep someone warm during winter months"
-  },
-  {
-    id: 2,
-    name: "Non-perishable Food",
-    category: "Food",
-    description: "Canned goods, dried foods, and other non-perishable items",
-    image: "https://post.healthline.com/wp-content/uploads/2020/01/dried-fruit-nuts-raisins-1296x728-header-1296x728.jpg",
-    impact: "Provides meals for families in need"
-  },
-  {
-    id: 3,
-    name: "School Supplies",
-    category: "Education",
-    description: "Notebooks, pencils, backpacks, and other school essentials",
-    image: "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&q=80&w=500",
-    impact: "Helps students succeed in their education"
-  },
-  {
-    id: 4,
-    name: "Hygiene Products",
-    category: "Personal Care",
-    description: "Soap, shampoo, toothbrushes, and other hygiene items",
-    image: "https://images.unsplash.com/photo-1583947581924-860bda6a26df?auto=format&fit=crop&q=80&w=500",
-    impact: "Maintains dignity and health for individuals"
-  },
-  {
-    id: 5,
-    name: "Baby Supplies",
-    category: "Children",
-    description: "Diapers, wipes, formula, and other baby necessities",
-    image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&q=80&w=500",
-    impact: "Supports new parents and their infants"
-  },
-  {
-    id: 6,
-    name: "Books",
-    category: "Education",
-    description: "New or gently used books for all ages",
-    image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&q=80&w=500",
-    impact: "Promotes literacy and learning"
-  },
-
-  {
-    id: 7,
-    name: "Other",
-    category: "Other",
-    description: "Donated new or gently used items supporting various causes.",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTuxX3k0vWLWGhi9W4L84-I6x8igMwheaFRukOaZWqrsquWMu4-BkZL0GoK2j3-ly--o8&usqp=CAU",
-    impact: "Promotes literacy and learning"
-  }
-];
+import { useState, useRef, ChangeEvent } from "react";
+import { useNavigate} from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft, Camera, Loader, CheckCircle, Search } from "lucide-react";
+import axios from "axios";
 
 const DonationItems = () => {
   const navigate = useNavigate();
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedCondition, setSelectedCondition] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [notes, setNotes] = useState("");
+  const [numberOfItems, setNumberOfItems] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiResponse, setApiResponse] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [isAnalyzed, setIsAnalyzed] = useState(false); // New state to track analysis completion
+  const [customCategory, setCustomCategory] = useState("");
+  const [category, setCategory] = useState("");
+  
 
-  const toggleItem = (itemId: number) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+  // Updated with type annotation
+  const handleImageCapture = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+      setIsAnalyzed(false); // Reset analysis status when a new image is uploaded
+    }
   };
+
+  const handleImageClick = async () => {
+    if (!image) return;
+
+    setAnalyzing(true);
+    setIsAnalyzed(false); // Reset analysis status before starting
+
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/analyze-image",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      setApiResponse(response.data?.description || "No description available.");
+      setIsAnalyzed(true); // Set to true when analysis completes successfully
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      setApiResponse("Error analyzing image.");
+      setIsAnalyzed(false);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const conditions = [
+    {
+      value: "new",
+      label: "New",
+      description: "Brand new, unworn clothing with tags",
+    },
+    {
+      value: "gently_used",
+      label: "Gently Used",
+      description: "Worn a few times but in excellent condition",
+    },
+    {
+      value: "moderately_used",
+      label: "Moderately Used",
+      description: "Visible signs of wear but no major defects",
+    },
+    {
+      value: "slightly_damaged",
+      label: "Slightly Damaged",
+      description: "Minor tears, missing buttons, or light stains",
+    },
+  ];
+
+  const categories = [
+    {
+      value: "Cloths",
+      description: "All types of clothing for adults and children",
+    },
+    {
+      value: "Non-perishable Food",
+      description: "Canned goods, dried foods, and other non-perishable items",
+    },
+    {
+      value: "School Supplies",
+      description: "Notebooks, pencils, backpacks, and other school essentials",
+    },
+    {
+      value: "Hygiene Products",
+      description: "Soap, shampoo, toothbrushes, and other hygiene items",
+    },
+    {
+      value: "Baby Supplies",
+      description: "Diapers, wipes, formula, and other baby necessities",
+    },
+    { value: "Books", description: "New or gently used books for all ages" },
+  ];
+
+  // Updated openCamera with null check
+  const openCamera = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedCondition || numberOfItems < 1 || !isAnalyzed) {
+      alert("Please complete all fields and ensure image analysis is done.");
+      return;
+    }
+  
+    setIsSubmitting(true);
+  
+    try {
+      const donorId = localStorage.getItem("donor_id"); // ✅ Get donorId properly
+  
+      if (!donorId) {
+        throw new Error("❌ Donor ID not found in localStorage");
+      }
+  
+      const response = await fetch("http://localhost:5000/api/donations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          donor_id: donorId,
+          category: category === "other" ? customCategory : category,
+          numberOfItems,
+          condition: selectedCondition, // ✅ Use correct variable
+          additional_notes: notes,
+          donation_date: new Date().toISOString(),
+          image_url: image || "",
+          ai_response: apiResponse,
+        }),
+      });
+  
+      if (response.ok) {
+        navigate("/thankyou", {
+          state: { numberOfItems, condition: selectedCondition, donorId }, // ✅ Pass correct data
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit donation");
+      }
+    } catch (error) {
+      console.error("❌ Error submitting donation:", error);
+      alert("Failed to submit donation. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }; 
+    
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8">
           <button
-            onClick={() => navigate('/DonorHome')}
+            onClick={() => navigate(-1)}
             className="flex items-center text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
+            Back to Items
           </button>
-          {selectedItems.length > 0 && (
-            <motion.button
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="bg-rose-600 text-white px-6 py-2 rounded-lg font-semibold shadow-md hover:bg-rose-700 transition-colors"
-            >
-              Continue with {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''}
-            </motion.button>
+        </div>
+        {/* Title */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Item Details
+          </h1>
+          <p className="text-gray-600">Please provide details about item</p>
+        </div>
+
+        {/*category selection*/}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Select Item Category
+          </h2>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+          >
+            <option value="">Select a category</option>
+            {categories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.value}
+              </option>
+            ))}
+            <option value="other">Other</option>
+          </select>
+
+          {/* Show textarea if 'Other' is selected */}
+          {category === "other" && (
+            <input
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              placeholder="Enter item category..."
+              className="w-full mt-4 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+            />
           )}
         </div>
 
-        {/* Title */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Select Items to Donate</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Choose the items you'd like to donate. Your contributions make a real difference in our community.
-          </p>
+        {/* Condition Selection */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Select Item Condition
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {conditions.map((condition) => (
+              <motion.button
+                key={condition.value}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedCondition(condition.value)}
+                className={`p-4 rounded-lg border-2 text-left ${
+                  selectedCondition === condition.value
+                    ? "border-rose-500 bg-rose-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-gray-900">
+                    {condition.label}
+                  </span>
+                  {selectedCondition === condition.value && (
+                    <CheckCircle className="h-5 w-5 text-rose-500" />
+                  )}
+                </div>
+                <p className="text-sm text-gray-600">{condition.description}</p>
+              </motion.button>
+            ))}
+          </div>
         </div>
+        {/* Number of Items */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Number of Items
+          </h2>
+          <input
+            type="number"
+            value={numberOfItems || ""}
+            onChange={(e) => setNumberOfItems(Number(e.target.value))}
+            min="1"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+            placeholder="Enter the number of items"
+          />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4 md:w-full">
+          Add Item Photo & Image Analysis
+        </h2>
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Heading Covering Both Sections */}
 
-        {/* Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {donationItems.map((item) => (
-            <motion.div
-              key={item.id}
-              whileHover={{ scale: 1.02 }}
-              className={`bg-white rounded-xl shadow-md overflow-hidden ${
-                selectedItems.includes(item.id) ? 'ring-2 ring-rose-500' : ''
-              }`}
-            >
-              <div className="relative h-48">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 right-4">
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => toggleItem(item.id)}
-                    className={`p-2 rounded-full ${
-                      selectedItems.includes(item.id)
-                        ? 'bg-rose-500 text-white'
-                        : 'bg-white text-gray-500'
-                    } shadow-md`}
-                  >
-                    <Heart className="h-5 w-5" fill={selectedItems.includes(item.id) ? "currentColor" : "none"} />
-                  </motion.button>
+          {/* Left Section - Image Upload */}
+          <div className="md:w-1/2 flex flex-col h-full mb-4">
+            <div className="flex flex-col items-center flex-1">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageCapture}
+                className="hidden"
+              />
+
+              {image ? (
+                <div className="relative w-full max-w-md h-72">
+                  <img
+                    src={URL.createObjectURL(image)}
+                    alt="Captured item"
+                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                    onClick={handleImageClick}
+                  />
+                  <div className="absolute bottom-4 right-4 flex space-x-2">
+                    <button
+                      onClick={openCamera}
+                      className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
+                    >
+                      <Camera className="h-6 w-6 text-gray-600" />
+                    </button>
+                    <button
+                      onClick={handleImageClick}
+                      className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
+                    >
+                      <Search className="h-6 w-6 text-gray-600" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center mb-2">
-                  <Box className="h-5 w-5 text-rose-500 mr-2" />
-                  <span className="text-sm font-medium text-rose-500">{item.category}</span>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={openCamera}
+                  className="w-full max-w-md h-72 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100"
+                >
+                  <Camera className="h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-sm text-gray-600">Click to take a photo</p>
+                </motion.button>
+              )}
+            </div>
+          </div>
+
+          {/* Right Section - Image Analysis */}
+          <div className="md:w-1/2 flex flex-col h-full">
+            <div className="bg-white rounded-lg shadow-md p-4 flex-1 mb-4">
+              {analyzing ? (
+                <div className="animate-pulse text-gray-500">
+                  Analyzing image...
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.name}</h3>
-                <p className="text-gray-600 mb-4">{item.description}</p>
-                <div className="bg-rose-50 rounded-lg p-4">
-                  <p className="text-sm text-rose-700">
-                    <strong>Impact:</strong> {item.impact}
-                  </p>
+              ) : (
+                <div className="relative h-64">
+                  <textarea
+                    readOnly
+                    value={apiResponse}
+                    className="w-full p-4 bg-gray-50 rounded-md border border-gray-200 text-sm resize-none h-full"
+                    placeholder="Image analysis results will appear here..."
+                  />
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              )}
+            </div>
+          </div>
         </div>
+        {/* Additional Notes */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Additional Notes
+          </h2>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Add any additional details about the item..."
+            className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+          />
+        </div>
+        {/* Submit Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleSubmit}
+          disabled={ isSubmitting || !selectedCondition || numberOfItems < 1 || !isAnalyzed}
+          className={`w-full py-4 rounded-lg font-semibold text-white ${
+            isSubmitting || !selectedCondition || numberOfItems < 1 || !isAnalyzed
+              ? "bg-gray-400"
+              : "bg-rose-600 hover:bg-rose-700"
+          }`}
+        >
+          {isSubmitting ? (
+            <span className="flex items-center justify-center">
+              <Loader className="animate-spin h-5 w-5 mr-2" />
+              Submitting...
+            </span>
+          ) : (
+            "Submit Donation"
+          )}
+        </motion.button>
       </div>
     </div>
   );

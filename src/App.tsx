@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
@@ -12,6 +11,9 @@ import DonationItems from './pages/Donoritems';
 import OrganisationLogin from './pages/organisationlogin';
 import OrgHome from './pages/Orghome';
 import OrgPickups from './pages/OrgPickups';
+import ThankYou from './pages/ThankYou';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 function App() {
   return (
@@ -21,21 +23,20 @@ function App() {
         <div className="pt-16">
           <Routes>
             <Route path="/" element={<Home />} />
+            
+            {/* Authentication - Public Access */}
             <Route path="/login" element={<Login />} />
+            <Route path="/donorlogin" element={<DonorLogin />} />
+            <Route path="/organisationlogin" element={<OrganisationLogin />} />
             <Route path="/register/donor" element={<DonorRegistration />} />
             <Route path="/register/organization" element={<OrganizationRegistration />} />
-            <Route path="/donorlogin" element={<DonorLogin />} />
-            <Route path="/DonorHome" element={<DonorHome />} />
+            <Route path="/donorhome" element={<DonorHome />} />
             <Route path="/donateitems" element={<DonationItems />} />
-            <Route path="/organisationlogin" element={<OrganisationLogin />} />
             <Route path="/OrgHome" element={<OrgHome />} />
             <Route path="/orgpickups" element={<OrgPickups />} />
-
-
-
-
-            
-
+            <Route path="/thankyou" element={<ThankYou />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
           </Routes>
         </div>
         <Toaster position="top-right" />

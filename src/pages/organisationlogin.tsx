@@ -1,68 +1,65 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Building2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Mail, Lock, Building2 } from "lucide-react";
+import toast from "react-hot-toast";
 
-const OrganizationLogin = () => {
+const OrganisationLogin  = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
+  // ✅ Login Function
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { data: { user }, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) throw error;
+      const data = await response.json();
 
-      if (user) {
-        navigate('/register/organization');
-      }
-    } catch (error: any) {
-      toast.error(error.message);
+      if (!response.ok) throw new Error(data.message);
+
+      localStorage.setItem("token", data.token); // Save auth token
+      navigate("/dashboard");
+      toast.success("Login successful!");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Login failed");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ✅ Signup Function
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { data: { user }, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const response = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+        body: JSON.stringify({ email, password, user_type: "organization" }),
       });
 
-      if (error) throw error;
+      const data = await response.json();
 
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([
-            {
-              id: user.id,
-              email: user.email,
-              user_type: 'organization',
-            },
-          ]);
+      if (!response.ok) throw new Error(data.message);
 
-        if (profileError) throw profileError;
-
-        toast.success('Account created successfully! Please check your email for verification.');
-        navigate('/register/organization');
-      }
-    } catch (error: any) {
-      toast.error(error.message);
+      toast.success("Account created! Please check your email.");
+      navigate("/register/organization");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Signup failed");
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +75,9 @@ const OrganizationLogin = () => {
       >
         <div className="flex items-center justify-center space-x-3">
           <Building2 className="w-8 h-8 text-rose-500" />
-          <h2 className="text-3xl font-extrabold text-gray-900">Organization Login</h2>
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Organization Login
+          </h2>
         </div>
         <p className="mt-2 text-center text-sm text-gray-600">
           Sign in or create a new organization account
@@ -136,7 +135,7 @@ const OrganizationLogin = () => {
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => navigate('/select-type')}
+                onClick={() => navigate("/login")}
                 className="text-sm font-medium text-rose-600 hover:text-rose-500 transition-colors"
               >
                 ← Back to selection
@@ -156,9 +155,9 @@ const OrganizationLogin = () => {
                 disabled={isLoading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg shadow-rose-100 text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition-colors duration-200"
               >
-                {isLoading ? 'Loading...' : 'Sign in'}
+                {isLoading ? "Loading..." : "Sign in"}
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
@@ -167,7 +166,7 @@ const OrganizationLogin = () => {
                 disabled={isLoading}
                 className="w-full flex justify-center py-3 px-4 border border-rose-200 rounded-lg shadow-md text-sm font-medium text-rose-600 bg-white hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition-colors duration-200"
               >
-                {isLoading ? 'Loading...' : 'Create new account'}
+                {isLoading ? "Loading..." : "Create new account"}
               </motion.button>
             </div>
           </form>
@@ -177,4 +176,4 @@ const OrganizationLogin = () => {
   );
 };
 
-export default OrganizationLogin;
+export default OrganisationLogin;
